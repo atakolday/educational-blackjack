@@ -1,0 +1,37 @@
+BLACKJACK GAME ICON INSTRUCTIONS
+================================
+
+To create a proper icon for the Blackjack game:
+
+1. **Icon Design Suggestions:**
+   - Use a playing card theme (Ace of Spades, card back, or card symbols)
+   - Colors: Green (#2c5530) and white/black for cards
+   - Size: 256x256 pixels minimum for best quality
+   - Format: PNG for development, ICO for Windows, ICNS for macOS
+
+2. **File Formats Needed:**
+   - icon.ico (Windows)
+   - icon.icns (macOS) 
+   - icon.png (Generic/Linux)
+
+3. **Placement:**
+   - Put icon files in this directory: src/gui/assets/
+   - The game will automatically detect and use them
+
+4. **Online Icon Generators:**
+   - favicon.io (can generate ICO files)
+   - convertio.co (format conversion)
+   - icoconvert.com (online ICO converter)
+
+5. **Simple Icon Creation:**
+   - Use any image editor (GIMP, Photoshop, etc.)
+   - Create a 256x256 image with card symbols
+   - Export as PNG, then convert to ICO/ICNS
+
+Example simple design:
+- Background: Dark green (#2c5530)
+- Center: White card back with "🂠" symbol
+- Border: Thin white line
+- Size: 256x256 pixels
+
+The game will work without an icon, but having one makes it look more professional! 
