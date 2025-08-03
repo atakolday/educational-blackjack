@@ -1,8 +1,15 @@
 # Blackjack with Card Counting and Statistical Strategy
 
+<img src="src/gui/assets/icon.png" alt="Game Icon" width="120" height="120">
+
 A sophisticated blackjack game implementation in Python that includes card counting (Hi-Lo system) and statistical strategy calculation based on the current count and remaining deck composition.
 
 ## Features
+
+### Start Screen
+<div style="width:512px; height:512px;">
+  <img src="static/start_window.png" alt="Start Screen" style="width:512px; height:512px; object-fit:contain;">
+</div>
 
 ### Core Game Engine
 - **Multi-deck support** (typically 6-8 decks like casino blackjack)
@@ -22,11 +29,19 @@ A sophisticated blackjack game implementation in Python that includes card count
 - **Optimal strategy recommendations** that adapt to the current count
 - **Comparison with basic strategy** to show count-based advantages
 
-### Graphical Interface (Coming Soon)
+### Graphical Interface ✅
+<div style="width:512px; height:512px;">
+  <img src="static/main_window.png" alt="Main Game Window" style="width:512px; height:512px; object-fit:contain;">
+</div>
+
 - **Modern GUI** with card visualization
 - **Real-time count display**
 - **Strategy recommendation panel**
 - **Statistics and performance tracking**
+- **Animated card dealing** with realistic timing
+- **Professional card design** with traditional suit patterns
+- **Custom card back images** for authentic appearance
+- **Smooth UI animations** without layout glitches
 
 ## Project Structure
 
@@ -108,6 +123,8 @@ After building, you'll find your app at:
 - ✅ **Native macOS app** - appears in Dock, Applications folder
 - ✅ **All assets included** - no missing files
 - ✅ **Professional appearance** - looks like a real app
+- ✅ **All recent improvements** - animated dealing, proper dealer play, custom card backs
+- ✅ **Stable performance** - no UI glitches or layout shifts
 
 ### Installing the App:
 1. **Test**: Double-click the app to make sure it works
@@ -124,15 +141,18 @@ The current version includes a fully functional console interface:
 The GUI provides a modern, user-friendly interface with:
 
 - **Start Screen** with bankroll selection and game rules
-- **Professional card design** with realistic proportions and styling
+- **Professional card design** with realistic proportions and traditional suit patterns
 - **Real-time card display** with suit symbols and colors
 - **Live count tracking** showing running count, true count, and count status
 - **Strategy recommendations** displaying optimal actions and expected values
-- **Interactive betting** with quick bet buttons and bankroll management
+- **Interactive betting** with cumulative chip buttons and bankroll management
 - **Game action buttons** (hit, stand, double, split, surrender) that update based on game state
 - **Insurance handling** when dealer shows an Ace
 - **Game statistics** including win rate and games played
-- **Responsive layout** that adapts to different window sizes
+- **Animated card dealing** with realistic timing delays
+- **Proper dealer play** with hole card reveal before additional actions
+- **Custom card back images** for authentic casino appearance
+- **Stable UI layout** with fixed dimensions to prevent glitching
 - **Menu navigation** with back-to-menu functionality
 
 The GUI automatically updates all displays in real-time as the game progresses, providing immediate feedback on count changes and strategy recommendations.
@@ -180,6 +200,12 @@ The running count and true count are displayed during gameplay.
 - [x] Card visualization
 - [x] Real-time strategy display
 - [x] Statistics dashboard
+- [x] Animated card dealing with realistic timing
+- [x] Professional card design with traditional suit patterns
+- [x] Custom card back images
+- [x] Stable UI layout with fixed dimensions
+- [x] Proper dealer play sequence (hole card reveal)
+- [x] Cumulative betting with chip buttons
 
 ### 📋 Phase 5: Advanced Features
 - [ ] Simulation mode for strategy validation
