@@ -31,7 +31,7 @@ A sophisticated blackjack game implementation in Python that includes card count
 
 ### Graphical Interface ✅
 <div style="width:512px; height:512px;">
-  <img src="static/main_window.png" alt="Main Game Window" style="width:659px; height:512px; object-fit:contain;">
+  <img src="static/main_window.png" alt="Main Game Window" style="width:762px; height:512px; object-fit:contain;">
 </div>
 
 - **Modern GUI** with card visualization
