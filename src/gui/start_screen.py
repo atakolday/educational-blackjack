@@ -18,7 +18,7 @@ class StartScreen(tk.Frame):
             parent: Parent widget
             on_start_game: Callback function when game starts (takes bankroll and num_decks as parameters)
         """
-        super().__init__(parent)
+        super().__init__(parent, bg='#2c5530')
         self.on_start_game = on_start_game
         self.selected_bankroll = 1000.0
         self.selected_decks = 6
@@ -41,7 +41,7 @@ class StartScreen(tk.Frame):
         title_label = tk.Label(
             title_frame,
             text="BLACKJACK",
-            font=('Arial', 36, 'bold'),
+            font=('Arial', 48, 'bold'),
             fg='#ffffff',
             bg='#2c5530'
         )
@@ -51,7 +51,7 @@ class StartScreen(tk.Frame):
         subtitle_label = tk.Label(
             title_frame,
             text="with Card Counting & Statistical Strategy",
-            font=('Arial', 14),
+            font=('Arial', 18),
             fg='#cccccc',
             bg='#2c5530'
         )
@@ -61,21 +61,30 @@ class StartScreen(tk.Frame):
         card_icon = tk.Label(
             title_frame,
             text="🂠 ♠ ♥ ♦ ♣",
-            font=('Arial', 24),
+            font=('Arial', 32),
             fg='#ffffff',
             bg='#2c5530'
         )
         card_icon.pack(pady=(0, 20))
         
-        # Game options frame
-        options_frame = ttk.LabelFrame(self, text="Game Setup", padding=20)
+        # Game options frame with simple styling
+        options_frame = tk.Frame(self, bg='#3a3a3a', relief='flat', bd=2)
         options_frame.grid(row=2, column=1, sticky="ew", padx=20, pady=20)
         
+        # Title for the frame
+        title_label = tk.Label(options_frame, text="Game Setup", font=('Arial', 18, 'bold'), 
+                              fg='#ffffff', bg='#3a3a3a')
+        title_label.pack(anchor=tk.W, padx=20, pady=(20, 20))
+        
+        # Content frame
+        content_frame = tk.Frame(options_frame, bg='#3a3a3a')
+        content_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=(0, 20))
+        
         # Bankroll selection
-        bankroll_frame = ttk.Frame(options_frame)
+        bankroll_frame = ttk.Frame(content_frame)
         bankroll_frame.pack(fill=tk.X, pady=(0, 20))
         
-        ttk.Label(bankroll_frame, text="Starting Bankroll:", font=('Arial', 12, 'bold')).pack(anchor=tk.W)
+        ttk.Label(bankroll_frame, text="Starting Bankroll:", font=('Arial', 16, 'bold')).pack(anchor=tk.W)
         
         # Bankroll options
         bankroll_options = [
@@ -92,17 +101,17 @@ class StartScreen(tk.Frame):
             textvariable=self.bankroll_var,
             values=[option[0] for option in bankroll_options],
             state="readonly",
-            font=('Arial', 12),
+            font=('Arial', 14),
             width=25
         )
         self.bankroll_combo.pack(fill=tk.X, pady=(10, 0))
         self.bankroll_combo.bind('<<ComboboxSelected>>', self._on_bankroll_change)
         
         # Shoe size selection
-        shoe_frame = ttk.Frame(options_frame)
+        shoe_frame = ttk.Frame(content_frame)
         shoe_frame.pack(fill=tk.X, pady=(0, 20))
         
-        ttk.Label(shoe_frame, text="Shoe Size (Number of Decks):", font=('Arial', 12, 'bold')).pack(anchor=tk.W)
+        ttk.Label(shoe_frame, text="Shoe Size (Number of Decks):", font=('Arial', 16, 'bold')).pack(anchor=tk.W)
         
         # Shoe size options
         shoe_options = [
@@ -119,66 +128,157 @@ class StartScreen(tk.Frame):
             textvariable=self.shoe_var,
             values=[option[0] for option in shoe_options],
             state="readonly",
-            font=('Arial', 12),
+            font=('Arial', 14),
             width=25
         )
         self.shoe_combo.pack(fill=tk.X, pady=(10, 0))
         self.shoe_combo.bind('<<ComboboxSelected>>', self._on_shoe_change)
         
         # Custom bankroll entry (hidden by default)
-        self.custom_frame = ttk.Frame(options_frame)
+        self.custom_frame = ttk.Frame(content_frame)
         self.custom_var = tk.StringVar(value="1000")
         self.custom_entry = ttk.Entry(
             self.custom_frame,
             textvariable=self.custom_var,
-            font=('Arial', 12),
+            font=('Arial', 14),
             width=20
         )
-        ttk.Label(self.custom_frame, text="Custom Amount ($):").pack(anchor=tk.W)
+        ttk.Label(self.custom_frame, text="Custom Amount ($):", font=('Arial', 14)).pack(anchor=tk.W)
         self.custom_entry.pack(fill=tk.X, pady=(5, 0))
         
         # Game rules info
-        rules_frame = ttk.LabelFrame(options_frame, text="Game Rules", padding=10)
+        rules_frame = tk.Frame(content_frame, bg='#3a3a3a')
         rules_frame.pack(fill=tk.X, pady=(20, 0))
         
-        rules_text = """
-• Dealer hits soft 17
-• Blackjack pays 3:2
-• Double after split allowed
-• Surrender available
-• Hi-Lo card counting system
-• Real-time strategy recommendations
-• ~75% penetration before shuffle
-        """
+        # Rules title
+        rules_title = tk.Label(
+            rules_frame,
+            text="Game Rules",
+            font=('Arial', 18, 'bold'),
+            fg='#ffffff',
+            bg='#3a3a3a'
+        )
+        rules_title.pack(anchor=tk.W, pady=(0, 20))
+        
+        rules_text = """  • Dealer hits soft 17
+  • Blackjack pays 3:2
+  • Double after split allowed
+  • Surrender available
+  • Hi-Lo card counting system
+  • Real-time strategy recommendations
+  • ~75% penetration before shuffle"""
         
         rules_label = tk.Label(
             rules_frame,
             text=rules_text,
-            font=('Arial', 10),
+            font=('Arial', 14),
             justify=tk.LEFT,
             fg='#ffffff',
-            bg='#2c5530'
+            bg='#3a3a3a'
         )
         rules_label.pack(anchor=tk.W)
         
-        # Start game button
-        button_frame = ttk.Frame(self)
+        # Start game button with rounded corners
+        button_frame = tk.Frame(self, bg='#2c5530')
         button_frame.grid(row=3, column=1, sticky="ew", padx=20, pady=20)
         
-        self.start_button = ttk.Button(
-            button_frame,
-            text="START NEW GAME",
-            command=self._start_game,
-            style='Accent.TButton'
+        # Create rounded button canvas
+        button_canvas = tk.Canvas(button_frame, bg='#2c5530', highlightthickness=0, height=50)
+        button_canvas.pack(fill=tk.X, pady=10)
+        
+        # Draw rounded rectangle for button
+        button_canvas.create_rounded_rectangle = lambda x1, y1, x2, y2, radius, **kwargs: button_canvas.create_polygon(
+            x1+radius, y1,
+            x2-radius, y1,
+            x2, y1,
+            x2, y1+radius,
+            x2, y2-radius,
+            x2, y2,
+            x2-radius, y2,
+            x1+radius, y2,
+            x1, y2,
+            x1, y2-radius,
+            x1, y1+radius,
+            x1, y1,
+            smooth=True, **kwargs
         )
-        self.start_button.pack(fill=tk.X, pady=10)
+        
+        # Function to redraw button with proper centering
+        def redraw_button():
+            canvas_width = button_canvas.winfo_width()
+            if canvas_width > 1:  # Only draw if canvas has proper width
+                button_width = min(canvas_width - 20, 400)  # Leave 10px margin on each side
+                button_x = (canvas_width - button_width) // 2
+                
+                # Clear previous drawings
+                button_canvas.delete("all")
+                
+                # Draw the rounded button background
+                button_canvas.create_rounded_rectangle(button_x, 0, button_x + button_width, 50, 10, 
+                                                     fill='#555555', outline='#777777', width=2)
+                
+                # Create button text centered in the button
+                button_text = tk.Label(button_canvas, text="START NEW GAME", font=('Arial', 16, 'bold'), 
+                                      fg='#ffffff', bg='#555555')
+                button_canvas.create_window(button_x + button_width//2, 25, anchor=tk.CENTER, window=button_text)
+                
+                # Rebind events to the new button text
+                button_text.bind('<Button-1>', lambda e: self._start_game())
+                button_text.bind('<Enter>', on_enter)
+                button_text.bind('<Leave>', on_leave)
+        
+        # Initial draw
+        button_canvas.after(10, redraw_button)
+        
+        # Bind canvas resize to redraw
+        button_canvas.bind('<Configure>', lambda e: redraw_button())
+        
+        # Bind click events
+        button_canvas.bind('<Button-1>', lambda e: self._start_game())
+        
+        # Hover effects
+        def on_enter(e):
+            canvas_width = button_canvas.winfo_width()
+            if canvas_width > 1:
+                button_width = min(canvas_width - 20, 400)
+                button_x = (canvas_width - button_width) // 2
+                button_canvas.delete("all")
+                button_canvas.create_rounded_rectangle(button_x, 0, button_x + button_width, 50, 10, 
+                                                     fill='#666666', outline='#888888', width=2)
+                # Recreate text with new background
+                button_text = tk.Label(button_canvas, text="START NEW GAME", font=('Arial', 16, 'bold'), 
+                                      fg='#ffffff', bg='#666666')
+                button_canvas.create_window(button_x + button_width//2, 25, anchor=tk.CENTER, window=button_text)
+                button_text.bind('<Button-1>', lambda e: self._start_game())
+                button_text.bind('<Enter>', on_enter)
+                button_text.bind('<Leave>', on_leave)
+            
+        def on_leave(e):
+            canvas_width = button_canvas.winfo_width()
+            if canvas_width > 1:
+                button_width = min(canvas_width - 20, 400)
+                button_x = (canvas_width - button_width) // 2
+                button_canvas.delete("all")
+                button_canvas.create_rounded_rectangle(button_x, 0, button_x + button_width, 50, 10, 
+                                                     fill='#555555', outline='#777777', width=2)
+                # Recreate text with new background
+                button_text = tk.Label(button_canvas, text="START NEW GAME", font=('Arial', 16, 'bold'), 
+                                      fg='#ffffff', bg='#555555')
+                button_canvas.create_window(button_x + button_width//2, 25, anchor=tk.CENTER, window=button_text)
+                button_text.bind('<Button-1>', lambda e: self._start_game())
+                button_text.bind('<Enter>', on_enter)
+                button_text.bind('<Leave>', on_leave)
+            
+        button_canvas.bind('<Enter>', on_enter)
+        button_canvas.bind('<Leave>', on_leave)
         
         # Credits/info
         credits_label = tk.Label(
             self,
-            text="Educational Project - Card counting may be prohibited in some casinos",
-            font=('Arial', 8),
-            fg='#666666'
+            text="Educational Project - Card counting may be prohibited in some casinos | © Ata Kolday | GitHub: @atakolday",
+            font=('Arial', 12),
+            fg='#ffffff',
+            bg='#2c5530'
         )
         credits_label.grid(row=5, column=1, pady=(0, 10))
     

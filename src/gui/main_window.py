@@ -19,12 +19,12 @@ from .components.betting_panel import BettingPanel
 from .components.action_panel import ActionPanel
 from .components.game_status import GameStatus
 from .start_screen import StartScreen
-
+from ..utils.utils import draw_rounded_rect
 
 class BlackjackGUI:
     """Main GUI window for the Blackjack game."""
     
-    def __init__(self, num_decks: int = 6, min_bet: float = 10.0, max_bet: float = 1000.0):
+    def __init__(self, num_decks: int = 6, min_bet: int = 10, max_bet: int = 1000):
         """
         Initialize the GUI.
         
@@ -41,8 +41,64 @@ class BlackjackGUI:
         # Create main window
         self.root = tk.Tk()
         self.root.title("Blackjack with Card Counting")
-        self.root.geometry("1200x800")
+        self.root.geometry("1600x1200")
         self.root.configure(bg='#2c5530')  # Dark green background
+
+        # Set up ttk style
+        self.style = ttk.Style()
+        
+        # Configure custom styles for the application
+        self.style.configure("TLabelframe", 
+                           background="#3a3a3a", 
+                           bordercolor="#555555",
+                           lightcolor="#555555",
+                           darkcolor="#555555")
+        
+        self.style.configure("TLabelframe.Label", 
+                           background="#3a3a3a", 
+                           foreground="white",
+                           font=('Arial', 16, 'bold'))
+        
+        self.style.configure("TFrame", 
+                           background="#3a3a3a")
+        
+        self.style.configure("TLabel", 
+                           background="#3a3a3a", 
+                           foreground="white")
+        
+        self.style.configure("TButton", 
+                           background="#555555", 
+                           foreground="white",
+                           bordercolor="#777777",
+                           lightcolor="#777777",
+                           darkcolor="#333333")
+        
+        self.style.configure("Accent.TButton", 
+                           background="#4CAF50", 
+                           foreground="white",
+                           bordercolor="#45a049",
+                           lightcolor="#45a049",
+                           darkcolor="#3d8b40")
+        
+        self.style.configure("Secondary.TButton", 
+                           background="#f44336", 
+                           foreground="white",
+                           bordercolor="#da190b",
+                           lightcolor="#da190b",
+                           darkcolor="#c62828")
+        
+        # Map styles for different states
+        self.style.map("TButton",
+                      background=[('active', '#666666'), ('pressed', '#444444')],
+                      foreground=[('active', '#FFFFFF'), ('pressed', '#FFFFFF')])
+        
+        self.style.map("Accent.TButton",
+                      background=[('active', '#45a049'), ('pressed', '#3d8b40')],
+                      foreground=[('active', '#FFFFFF'), ('pressed', '#FFFFFF')])
+        
+        self.style.map("Secondary.TButton",
+                      background=[('active', '#da190b'), ('pressed', '#c62828')],
+                      foreground=[('active', '#FFFFFF'), ('pressed', '#FFFFFF')])
         
         # Set window icon
         self._set_window_icon()
@@ -77,12 +133,10 @@ class BlackjackGUI:
                             img = Image.open(icon_path)
                             photo = ImageTk.PhotoImage(img)
                             self.root.iconphoto(True, photo)
-                            print(f"Icon loaded successfully from: {icon_path}")
                             break
                         else:
                             # For other formats, use iconbitmap
                             self.root.iconbitmap(icon_path)
-                            print(f"Icon loaded successfully from: {icon_path}")
                             break
                     except Exception as icon_error:
                         print(f"Failed to load icon from {icon_path}: {icon_error}")
@@ -109,43 +163,69 @@ class BlackjackGUI:
         self.player_display = CardDisplay(self.center_frame, "Player")
         
         # Right panel - Betting and Actions
-        self.betting_panel = BettingPanel(self.right_frame, self.min_bet, self.max_bet)
+        self.betting_panel = BettingPanel(self.right_frame, self.min_bet, self.max_bet, self.game.player_bankroll)
         self.action_panel = ActionPanel(self.right_frame)
         
         # Status bar
         self.status_bar = ttk.Label(self.root, text="Ready to play", relief=tk.SUNKEN)
-        
-        # Menu button
-        self.menu_button = ttk.Button(self.root, text="← Back to Menu", command=self._back_to_menu)
     
     def _layout_components(self):
         """Layout all components in the window."""
-        # Left panel (Count and Strategy)
-        self.left_frame.grid(row=0, column=0, rowspan=3, sticky="nsew", padx=10, pady=10)
+        # Left panel (Count and Strategy) - positioned below the menu button
+        self.left_frame.grid(row=1, column=0, rowspan=2, sticky="nsew", padx=10, pady=(10, 10))
         self.left_frame.grid_columnconfigure(0, weight=1)
         
-        self.count_display.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
+        self.count_display.pack(fill=tk.BOTH, expand=True, pady=(10, 10))
         self.strategy_display.pack(fill=tk.BOTH, expand=True)
         
         # Center panel (Game area)
-        self.center_frame.grid(row=0, column=1, rowspan=3, sticky="nsew", padx=10, pady=10)
+        self.center_frame.grid(row=1, column=1, rowspan=2, sticky="nsew", padx=10, pady=10)
         self.center_frame.grid_columnconfigure(0, weight=1)
         self.center_frame.grid_rowconfigure(1, weight=1)
         self.center_frame.grid_rowconfigure(3, weight=1)
         
-        self.game_status.pack(fill=tk.X, pady=(0, 10))
+        self.game_status.pack(fill=tk.X, pady=(10, 10))
         self.dealer_display.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
         self.player_display.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
         
         # Right panel (Betting and Actions)
-        self.right_frame.grid(row=0, column=2, rowspan=3, sticky="nsew", padx=10, pady=10)
+        self.right_frame.grid(row=1, column=2, rowspan=2, sticky="nsew", padx=10, pady=10)
         self.right_frame.grid_columnconfigure(0, weight=1)
         
-        self.betting_panel.pack(fill=tk.X, pady=(0, 10))
+        self.betting_panel.pack(fill=tk.X, pady=(10, 10))
         self.action_panel.pack(fill=tk.BOTH, expand=True)
         
-        # Menu button
-        self.menu_button.grid(row=0, column=0, sticky="nw", padx=10, pady=10)
+        # Menu button with rounded corners - positioned above the left panel
+        menu_btn_canvas = tk.Canvas(self.root, width=160, height=44, highlightthickness=0, bg=self.root.cget("bg"))
+        menu_btn_canvas.grid(row=0, column=0, sticky="nw", padx=10, pady=(10, 0))
+        
+        # Store references to canvas items for hover effects
+        menu_btn_canvas.background_shape = None
+        menu_btn_canvas.button_text = None
+        
+        # Draw the rounded rectangle background
+        menu_btn_canvas.background_shape = draw_rounded_rect(menu_btn_canvas, 2, 2, 158, 42, 16, fill="#e0e0e0", outline="#b0b0b0", width=2)
+        
+        # Create button text as a canvas item instead of a separate button
+        menu_btn_canvas.button_text = menu_btn_canvas.create_text(80, 22, text="← Back to Menu", font=('Arial', 12, 'bold'), fill='#333333')
+        
+        # Bind click events to the canvas
+        def on_click(event):
+            self._back_to_menu()
+        
+        def on_enter(event):
+            # Update background color without redrawing
+            menu_btn_canvas.itemconfig(menu_btn_canvas.background_shape, fill="#d0d0d0", outline="#a0a0a0")
+            menu_btn_canvas.itemconfig(menu_btn_canvas.button_text, fill='#222222')
+        
+        def on_leave(event):
+            # Update background color without redrawing
+            menu_btn_canvas.itemconfig(menu_btn_canvas.background_shape, fill="#e0e0e0", outline="#b0b0b0")
+            menu_btn_canvas.itemconfig(menu_btn_canvas.button_text, fill='#333333')
+        
+        menu_btn_canvas.bind('<Button-1>', on_click)
+        menu_btn_canvas.bind('<Enter>', on_enter)
+        menu_btn_canvas.bind('<Leave>', on_leave)
         
         # Status bar
         self.status_bar.grid(row=3, column=0, columnspan=3, sticky="ew", padx=10, pady=(0, 10))
@@ -183,7 +263,7 @@ class BlackjackGUI:
         self.start_screen = StartScreen(self.root, self._on_start_game)
         self.start_screen.pack(fill=tk.BOTH, expand=True)
     
-    def _on_start_game(self, bankroll: float, num_decks: int):
+    def _on_start_game(self, bankroll: int, num_decks: int):
         """Handle start game button click."""
         # Update number of decks based on selection
         self.num_decks = num_decks
@@ -202,9 +282,10 @@ class BlackjackGUI:
             widget.destroy()
         
         # Configure grid weights for game layout
-        self.root.grid_rowconfigure(0, weight=1)  # Top section
-        self.root.grid_rowconfigure(1, weight=2)  # Middle section (game area)
-        self.root.grid_rowconfigure(2, weight=1)  # Bottom section
+        self.root.grid_rowconfigure(0, weight=0)  # Menu button row (fixed height)
+        self.root.grid_rowconfigure(1, weight=1)  # Top section
+        self.root.grid_rowconfigure(2, weight=2)  # Middle section (game area)
+        self.root.grid_rowconfigure(3, weight=1)  # Bottom section
         self.root.grid_columnconfigure(0, weight=1)
         self.root.grid_columnconfigure(1, weight=3)  # Game area
         self.root.grid_columnconfigure(2, weight=1)
@@ -217,15 +298,12 @@ class BlackjackGUI:
         # Update display
         self._update_display()
     
-    def _on_bet_placed(self, amount: float):
+    def _on_bet_placed(self, amount: int):
         """Handle bet placement."""
         if self.game.place_bet(amount):
             self._update_display()
-            if self.game.deal_initial_cards():
-                self._update_display()
-                self._check_insurance()
-            else:
-                messagebox.showerror("Error", "Failed to deal cards!")
+            # Start the animated dealing process
+            self._deal_cards_with_animation()
         else:
             messagebox.showerror("Error", "Invalid bet amount!")
     
@@ -233,17 +311,22 @@ class BlackjackGUI:
         """Handle hit action."""
         if self.game.hit():
             self._update_display()
-            if self.game.state == GameState.DEALER_TURN:
-                self._play_dealer_hand()
+            # Add a small delay before checking if dealer should play
+            self.root.after(500, self._check_dealer_turn)
         else:
             messagebox.showerror("Error", "Cannot hit!")
+    
+    def _check_dealer_turn(self):
+        """Check if it's the dealer's turn after player action."""
+        if self.game.state == GameState.DEALER_TURN:
+            self._play_dealer_hand()
     
     def _on_stand(self):
         """Handle stand action."""
         if self.game.stand():
             self._update_display()
-            if self.game.state == GameState.DEALER_TURN:
-                self._play_dealer_hand()
+            # Add a small delay before dealer plays
+            self.root.after(500, self._check_dealer_turn)
         else:
             messagebox.showerror("Error", "Cannot stand!")
     
@@ -251,8 +334,8 @@ class BlackjackGUI:
         """Handle double down action."""
         if self.game.double_down():
             self._update_display()
-            if self.game.state == GameState.DEALER_TURN:
-                self._play_dealer_hand()
+            # Add a small delay before dealer plays
+            self.root.after(500, self._check_dealer_turn)
         else:
             messagebox.showerror("Error", "Cannot double down!")
     
@@ -267,12 +350,12 @@ class BlackjackGUI:
         """Handle surrender action."""
         if self.game.surrender():
             self._update_display()
-            if self.game.state == GameState.DEALER_TURN:
-                self._play_dealer_hand()
+            # Add a small delay before dealer plays
+            self.root.after(500, self._check_dealer_turn)
         else:
             messagebox.showerror("Error", "Cannot surrender!")
     
-    def _on_insurance(self, amount: float):
+    def _on_insurance(self, amount: int):
         """Handle insurance bet."""
         if self.game.place_insurance(amount):
             self._update_display()
@@ -295,6 +378,80 @@ class BlackjackGUI:
         self.game.start_new_hand()
         self._update_display()
     
+    def _deal_cards_with_animation(self):
+        """Deal cards with animation delays for a more natural feel."""
+        # First, prepare the game state for dealing
+        if self.game.state != GameState.DEALING:
+            return
+        
+        # Check if deck needs shuffling
+        if self.game.deck.should_shuffle():
+            self.game.deck.shuffle()
+            self.game.card_counter.reset(self.game.deck)
+        
+        # Burn a card (casino practice)
+        burned_card = self.game.deck.burn_card()
+        if burned_card:
+            self.game.card_counter.update_count(burned_card)
+        
+        # Clear previous hands
+        self.game.player_hands = [Hand()]
+        self.game.dealer_hand.clear()
+        self.game.current_hand_index = 0
+        
+        # Start the animated dealing sequence
+        self._deal_next_card(0, 0)
+    
+    def _deal_next_card(self, round_num: int, card_in_round: int):
+        """Deal the next card in the sequence with animation."""
+        if round_num >= 2:  # All cards dealt
+            # Check for insurance opportunity
+            if len(self.game.dealer_hand.cards) >= 2 and self.game.dealer_hand.cards[1].is_ace:
+                self.game.state = GameState.INSURANCE
+                self._update_display()
+                self._check_insurance()
+                return
+            
+            # Check for dealer blackjack
+            if self.game.dealer_hand.is_blackjack:
+                self.game.state = GameState.GAME_OVER
+                results = self.game.determine_results()
+                self.game.update_statistics(results)
+                self._update_display()
+                return
+            
+            # Check for player blackjack
+            if self.game.player_hands[0].is_blackjack:
+                self.game.state = GameState.GAME_OVER
+                results = self.game.determine_results()
+                self.game.update_statistics(results)
+                self._update_display()
+                return
+            
+            self.game.state = GameState.PLAYER_TURN
+            self._update_display()
+            return
+        
+        # Deal the current card
+        if card_in_round == 0:  # First card in this round
+            # Deal to player
+            card = self.game.deck.deal_card()
+            if card:
+                self.game.player_hands[0].add_card(card)
+                self.game.card_counter.update_count(card)
+                self._update_display()
+                # Schedule next card (dealer's card in this round)
+                self.root.after(800, lambda: self._deal_next_card(round_num, 1))
+        else:  # Second card in this round (dealer's card)
+            # Deal to dealer
+            card = self.game.deck.deal_card()
+            if card:
+                self.game.dealer_hand.add_card(card)
+                self.game.card_counter.update_count(card)
+                self._update_display()
+                # Schedule next round
+                self.root.after(800, lambda: self._deal_next_card(round_num + 1, 0))
+    
     def _check_insurance(self):
         """Check if insurance is available."""
         if self.game.state == GameState.INSURANCE:
@@ -302,13 +459,54 @@ class BlackjackGUI:
             self.action_panel.show_insurance_options(max_insurance)
     
     def _play_dealer_hand(self):
-        """Play out the dealer's hand with animation."""
-        def dealer_play():
-            self.root.after(1000, self.game.play_dealer_hand)
-            self.root.after(1100, self._update_display)
-            self.root.after(1200, self._show_results)
+        """Play out the dealer's hand with step-by-step animation."""
+        # Check if any player hands are still in play (not busted)
+        active_hands = [hand for hand in self.game.player_hands if not hand.is_bust and not hand.is_surrendered]
         
-        threading.Thread(target=dealer_play, daemon=True).start()
+        # If all hands are busted or surrendered, dealer doesn't need to play
+        if not active_hands:
+            self.game.state = GameState.GAME_OVER
+            self._show_results()
+            return
+        
+        # Set game state to dealer turn and start with revealing the face-down card
+        self.game.state = GameState.DEALER_TURN
+        self._dealer_play_step(reveal_hole_card=True)
+    
+    def _dealer_play_step(self, reveal_hole_card=False):
+        """Play one step of the dealer's hand."""
+        if reveal_hole_card:
+            # First step: reveal the face-down card
+            self._update_display()
+            
+            # Schedule the actual dealer play after a delay
+            self.root.after(1500, lambda: self._dealer_play_step(reveal_hole_card=False))
+            return
+        
+        # Use the exact same logic as the original play_dealer_hand method
+        should_hit = (self.game.dealer_hand.total < 17 or 
+                     (self.game.dealer_hits_soft_17 and self.game.dealer_hand.is_soft and self.game.dealer_hand.total == 17))
+        
+        if should_hit:
+            # Deal one card to dealer
+            card = self.game.deck.deal_card()
+            if card:
+                self.game.dealer_hand.add_card(card)
+                self.game.card_counter.update_count(card)
+                
+                # Update display to show the new card
+                self._update_display()
+                
+                # Schedule next step after a delay
+                self.root.after(2000, lambda: self._dealer_play_step(reveal_hole_card=False))
+            else:
+                # No more cards in deck
+                self.game.state = GameState.GAME_OVER
+                self._show_results()
+        else:
+            # Dealer stands
+            self.game.state = GameState.GAME_OVER
+            self._show_results()
     
     def _show_results(self):
         """Show game results."""
@@ -334,15 +532,14 @@ class BlackjackGUI:
         # Update dealer display
         self.dealer_display.update_hand(
             self.game.dealer_hand,
-            hide_first=(self.game.state != GameState.GAME_OVER)
+            hide_first=(self.game.state not in [GameState.GAME_OVER, GameState.DEALER_TURN])
         )
         
         # Update player display
-        if self.game.player_hands:
-            self.player_display.update_hands(
-                self.game.player_hands,
-                self.game.current_hand_index
-            )
+        self.player_display.update_hands(
+            self.game.player_hands,
+            self.game.current_hand_index
+        )
         
         # Update count display
         self.count_display.update_count(self.game.card_counter)
@@ -352,7 +549,7 @@ class BlackjackGUI:
             current_hand = self.game.get_current_hand()
             if current_hand and self.game.dealer_hand.cards:
                 dealer_up = self.game.dealer_hand.cards[1]
-                self.strategy_display.update_strategy(current_hand, dealer_up)
+                self.strategy_display.update_strategy(current_hand, dealer_up, self.game.dealer_hand)
         else:
             self.strategy_display.clear_strategy()
         

@@ -1,8 +1,11 @@
-from typing import Dict, List, Tuple, Optional
+import copy
+from typing import Dict, List, Tuple, Optional, Union, Literal
 from enum import Enum
+from collections import defaultdict
 from ..game.card import Card, Rank
 from ..game.hand import Hand
 from ..counting.counter import CardCounter
+from ..game.deck import Deck
 
 
 class Action(Enum):
@@ -468,4 +471,113 @@ class StrategyCalculator:
             "basic_ev": basic_ev,
             "ev_difference": optimal_ev - basic_ev,
             "count_advantage": optimal_ev > basic_ev
-        } 
+        }
+    
+    def get_bust_probability(self, hand_total: int, role: str = 'player') -> float:
+        """
+        Calculate bust probability for the current deck state.
+        
+        Args:
+            hand_total: Current hand total
+            role: 'dealer' or 'player' to determine stand threshold
+            
+        Returns:
+            Probability of busting (0.0 to 1.0)
+        """
+        # Create a mock deck with current card counts for bust probability calculation
+        class MockDeck:
+            def __init__(self, card_counts, total_cards):
+                self._card_counts = card_counts.copy()
+                self.cards_remaining = total_cards
+        
+        total_cards = self.card_counter._initial_deck_size - self.card_counter._total_cards_seen
+        mock_deck = MockDeck(self.card_counter._card_counts, total_cards)
+        
+        return self._calculate_bust_probability(hand_total, mock_deck, role)
+
+    def _calculate_bust_probability(
+        self,
+        hand_total: int, 
+        deck: Deck, 
+        role: Union[Literal['dealer'], Literal['player']]
+    ) -> float:
+        """
+        Calculate the bust probability for a given hand total and deck state.
+        
+        For players: calculates probability of busting on the next draw only
+        For dealers: calculates probability of busting following dealer rules (recursive)
+        
+        Args:
+            hand_total: Current hand total
+            deck: Current deck state
+            role: 'dealer' or 'player' to determine calculation method
+            
+        Returns:
+            Probability of busting (0.0 to 1.0)
+        """
+        if hand_total > 21:
+            return 1.0
+        
+        # For players: calculate bust probability on next draw only
+        if role == 'player':
+            bust_prob = 0.0
+            total_deck_count = deck.cards_remaining
+            
+            for rank in list(deck._card_counts.keys()):
+                if deck._card_counts[rank] == 0:
+                    continue
+                    
+                card_prob = deck._card_counts[rank] / total_deck_count
+                
+                # Handle Ace specially - it can be 1 or 11
+                if rank == Rank.ACE:
+                    # Use Ace optimally (as 1 if 11 would bust)
+                    if hand_total + 11 > 21:
+                        # Ace as 1 - check if it busts
+                        if hand_total + 1 > 21:
+                            bust_prob += card_prob
+                    else:
+                        # Ace as 11 - check if it busts  
+                        if hand_total + 11 > 21:
+                            bust_prob += card_prob
+                else:
+                    # Regular card - check if it busts
+                    if hand_total + rank.card_value > 21:
+                        bust_prob += card_prob
+            
+            return bust_prob
+        
+        # For dealers: recursive calculation following dealer rules
+        if hand_total >= 17:
+            return 0.0  # Dealer stands
+
+        total_prob = 0.0
+        total_deck_count = deck.cards_remaining
+
+        for rank in list(deck._card_counts.keys()):
+            if deck._card_counts[rank] == 0:
+                continue
+                
+            # Copy deck and remove 1 card
+            new_deck = copy.deepcopy(deck)
+            new_deck._card_counts[rank] -= 1
+            
+            card_prob = deck._card_counts[rank] / total_deck_count
+            
+            # Handle Ace specially - it can be 1 or 11
+            if rank == Rank.ACE:
+                # Try Ace as 11 first, then as 1 if it would bust
+                if hand_total + 11 > 21:
+                    # Must use Ace as 1
+                    new_total = hand_total + 1
+                    total_prob += card_prob * self._calculate_bust_probability(new_total, new_deck, role)
+                else:
+                    # Can use Ace as 11, so use it optimally (as 11 unless it causes immediate bust)
+                    new_total = hand_total + 11
+                    total_prob += card_prob * self._calculate_bust_probability(new_total, new_deck, role)
+            else:
+                # Regular card
+                new_total = hand_total + rank.card_value
+                total_prob += card_prob * self._calculate_bust_probability(new_total, new_deck, role)
+
+        return total_prob 

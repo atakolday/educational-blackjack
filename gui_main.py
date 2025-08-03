@@ -14,7 +14,7 @@ def main():
     """Main GUI entry point."""
     try:
         # Create and run the GUI
-        app = BlackjackGUI(num_decks=6, min_bet=10.0, max_bet=1000.0)
+        app = BlackjackGUI(num_decks=6, min_bet=10, max_bet=1000)
         app.run()
     except Exception as e:
         print(f"Error starting GUI: {e}")

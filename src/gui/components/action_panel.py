@@ -26,7 +26,7 @@ class ActionPanel(ttk.LabelFrame):
         self.on_double: Optional[Callable[[], None]] = None
         self.on_split: Optional[Callable[[], None]] = None
         self.on_surrender: Optional[Callable[[], None]] = None
-        self.on_insurance: Optional[Callable[[float], None]] = None
+        self.on_insurance: Optional[Callable[[int], None]] = None
         self.on_decline_insurance: Optional[Callable[[], None]] = None
         self.on_new_hand: Optional[Callable[[], None]] = None
         
@@ -100,11 +100,11 @@ class ActionPanel(ttk.LabelFrame):
         self.insurance_frame = ttk.Frame(self)
         self.insurance_frame.pack(fill=tk.X, pady=(10, 0))
         
-        ttk.Label(self.insurance_frame, text="Insurance Available", font=('Arial', 10, 'bold')).pack()
+        ttk.Label(self.insurance_frame, text="Insurance Available", font=('Arial', 14, 'bold')).pack()
         
         # Insurance amount entry
         self.insurance_var = tk.StringVar(value="0")
-        self.insurance_entry = ttk.Entry(self.insurance_frame, textvariable=self.insurance_var, font=('Arial', 10))
+        self.insurance_entry = ttk.Entry(self.insurance_frame, textvariable=self.insurance_var, font=('Arial', 14))
         self.insurance_entry.pack(fill=tk.X, pady=(5, 0))
         
         # Insurance buttons
@@ -159,7 +159,7 @@ class ActionPanel(ttk.LabelFrame):
         """Handle insurance action."""
         if self.on_insurance:
             try:
-                amount = float(self.insurance_var.get())
+                amount = int(self.insurance_var.get())
                 self.on_insurance(amount)
             except ValueError:
                 # Invalid insurance amount
@@ -236,7 +236,7 @@ class ActionPanel(ttk.LabelFrame):
             self._disable_all_actions()
             self.new_hand_btn.config(state='normal')
     
-    def show_insurance_options(self, max_insurance: float):
+    def show_insurance_options(self, max_insurance: int):
         """
         Show insurance options.
         

@@ -7,7 +7,8 @@ from tkinter import ttk
 from typing import List, Optional
 from ...game.card import Card, Suit, Rank
 from ...game.hand import Hand
-
+import os
+from PIL import Image, ImageTk
 
 class CardDisplay(ttk.Frame):
     """Component for displaying cards in a hand."""
@@ -24,26 +25,53 @@ class CardDisplay(ttk.Frame):
         self.title = title
         self.cards: List[Card] = []
         self.hide_first = False
+        self.card_back_image = None
         
         self._create_widgets()
+        self._load_card_back_image()
     
     def _create_widgets(self):
         """Create the widget layout."""
+        # Set fixed dimensions for the entire card display to prevent resizing
+        self.configure(width=800, height=300)
+        self.pack_propagate(False)  # Prevent the main frame from resizing
+        
         # Title
-        self.title_label = ttk.Label(self, text=self.title, font=('Arial', 14, 'bold'))
+        self.title_label = ttk.Label(self, text=self.title, font=('Arial', 16, 'bold'))
         self.title_label.pack(pady=(0, 10))
         
-        # Cards frame
+        # Cards frame with fixed dimensions to prevent resizing glitches
         self.cards_frame = ttk.Frame(self)
         self.cards_frame.pack(fill=tk.BOTH, expand=True)
         
+        # Set minimum dimensions to accommodate multiple cards
+        # Each card is 120x160, so we need space for at least 6-8 cards horizontally
+        self.cards_frame.configure(width=800, height=200)
+        self.cards_frame.pack_propagate(False)  # Prevent frame from shrinking
+        
         # Total label
-        self.total_label = ttk.Label(self, text="Total: 0", font=('Arial', 12))
+        self.total_label = ttk.Label(self, text="Total: 0", font=('Arial', 14))
         self.total_label.pack(pady=(10, 0))
         
         # Status label (for soft hands, bust, etc.)
-        self.status_label = ttk.Label(self, text="", font=('Arial', 10))
+        self.status_label = ttk.Label(self, text="", font=('Arial', 12))
         self.status_label.pack()
+    
+    def _load_card_back_image(self):
+        """Load the card back image from assets."""
+        try:
+            # Get the path to the assets directory
+            current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            assets_dir = os.path.join(current_dir, 'assets')
+            image_path = os.path.join(assets_dir, 'card_back.png')
+            
+            # Load and resize the image to fit the card dimensions
+            original_image = Image.open(image_path)
+            resized_image = original_image.resize((116, 156), Image.Resampling.LANCZOS)  # Slightly smaller than card frame
+            self.card_back_image = ImageTk.PhotoImage(resized_image)
+        except Exception as e:
+            print(f"Failed to load card back image: {e}")
+            self.card_back_image = None
     
     def update_hand(self, hand: Hand, hide_first: bool = False):
         """
@@ -112,15 +140,19 @@ class CardDisplay(ttk.Frame):
                 card_widget.pack(side=tk.LEFT, padx=(0, 0))  # Minimal spacing for overlap effect
         
         # Update total and status
-        if self.hide_first and len(self.cards) > 1:
-            # Show only visible cards total
-            visible_cards = self.cards[1:]
-            total = sum(card.get_soft_value() for card in visible_cards)
-            aces = sum(1 for card in visible_cards if card.is_ace)
-            for _ in range(aces):
-                if total + 10 <= 21:
-                    total += 10
-            self.total_label.config(text=f"Total: {total}")
+        if self.hide_first:
+            # Show only visible cards total (exclude the face-down card)
+            if len(self.cards) > 1:
+                visible_cards = self.cards[1:]
+                total = sum(card.get_soft_value() for card in visible_cards)
+                aces = sum(1 for card in visible_cards if card.is_ace)
+                for _ in range(aces):
+                    if total + 10 <= 21:
+                        total += 10
+                self.total_label.config(text=f"Total: {total}")
+            else:
+                # Only one card and it's face-down
+                self.total_label.config(text="Total: ?")
             self.status_label.config(text="(First card hidden)")
         else:
             # Show full hand
@@ -140,10 +172,10 @@ class CardDisplay(ttk.Frame):
             if hand.is_surrendered:
                 status_parts.append("Surrendered")
             
-            self.status_label.config(text=", ".join(status_parts) if status_parts else "")
+            self.status_label.config(text=", ".join(status_parts) if status_parts else "", font=('Courier', 24, 'bold') if hand.is_blackjack else ('Courier', 12, 'bold'))
     
     def _create_card_widget(self, card: Card) -> tk.Frame:
-        """Create a widget for a single card."""
+        """Create a widget for a single card using layered approach."""
         # Create main card frame with shadow effect
         card_frame = tk.Frame(
             self.cards_frame, 
@@ -154,10 +186,6 @@ class CardDisplay(ttk.Frame):
             height=160      # Fixed height for better proportions
         )
         card_frame.pack_propagate(False)  # Prevent frame from shrinking
-        
-        # Card dimensions - make cards wider for better proportions
-        card_width = 12
-        card_height = 4
         
         # Card content
         rank_text = card.rank.display
@@ -171,55 +199,52 @@ class CardDisplay(ttk.Frame):
         
         # Special styling for face cards
         is_face_card = card.rank in [Rank.JACK, Rank.QUEEN, Rank.KING]
-        if is_face_card:
-            # Use a slightly different background for face cards
-            card_bg = '#f8f8f8'  # Slightly off-white
-        else:
-            card_bg = '#ffffff'  # Pure white
+        card_bg = '#ffffff'  # Pure white
         
-        # Inner card frame for the white card face
-        inner_frame = tk.Frame(
+        # Layer 1: White background
+        bg_frame = tk.Frame(
             card_frame,
             relief=tk.FLAT,
             borderwidth=1,
-            bg=card_bg  # Dynamic card background
-        )
-        inner_frame.pack(padx=1, pady=1, fill=tk.BOTH, expand=True)
-        
-        # Create card content
-        # Top-left corner
-        top_left = tk.Label(
-            inner_frame,
-            text=f"{rank_text}\n{suit_symbol}",
-            font=('Arial', 16, 'bold'),
-            fg=fg_color,
-            bg=card_bg,
-            justify=tk.LEFT,
-            anchor='nw'
-        )
-        top_left.pack(anchor='nw', padx=3, pady=3)
-        
-        # Center suit (larger)
-        center_suit = tk.Label(
-            inner_frame,
-            text=suit_symbol,
-            font=('Arial', 24, 'bold'),
-            fg=fg_color,
             bg=card_bg
         )
-        center_suit.pack(expand=True)
+        bg_frame.pack(padx=1, pady=1, fill=tk.BOTH, expand=True)
+        
+        # Layer 2: Corner rank/suit labels (absolute positioning)
+        # Top-left corner
+        top_left = tk.Label(
+            bg_frame,
+            text=f"{rank_text}\n{suit_symbol}",
+            font=('Arial', 18, 'bold') if rank_text != '10' else ('Arial Narrow', 16, 'bold'),
+            fg=fg_color,
+            bg=card_bg,
+            justify=tk.LEFT
+        )
+        top_left.place(x=2, y=2, anchor='nw')
         
         # Bottom-right corner (rotated)
         bottom_right = tk.Label(
-            inner_frame,
+            bg_frame,
             text=f"{suit_symbol}\n{rank_text}",
-            font=('Arial', 16, 'bold'),
+            font=('Arial', 18, 'bold') if rank_text != '10' else ('Arial Narrow', 16, 'bold'),
             fg=fg_color,
             bg=card_bg,
-            justify=tk.RIGHT,
-            anchor='se'
+            justify=tk.RIGHT
         )
-        bottom_right.pack(anchor='se', padx=3, pady=3)
+        bottom_right.place(x=110, y=150, anchor='se')
+        
+        # Layer 3: Center content
+        if is_face_card:
+            center_label = tk.Label(
+                bg_frame,
+                text=rank_text,
+                font=('Arial', 36, 'bold'),
+                fg=fg_color,
+                bg=card_bg
+            )
+            center_label.place(x=57, y=80, anchor='center')
+        else:
+            self._create_suit_pattern_layered(bg_frame, card.rank.card_value, suit_symbol, fg_color, card_bg)
         
         return card_frame
     
@@ -245,35 +270,122 @@ class CardDisplay(ttk.Frame):
         )
         inner_frame.pack(padx=1, pady=1, fill=tk.BOTH, expand=True)
         
-        # Card back pattern
-        # Top pattern
-        top_pattern = tk.Label(
-            inner_frame,
-            text="♠ ♥ ♦ ♣",
-            font=('Arial', 8, 'bold'),
-            fg='#ffffff',
-            bg='#2c5530'
-        )
-        top_pattern.pack(anchor='n', pady=(5, 0))
-        
-        # Center design
-        center_design = tk.Label(
-            inner_frame,
-            text="🂠",
-            font=('Arial', 24, 'bold'),
-            fg='#ffffff',
-            bg='#2c5530'
-        )
-        center_design.pack(expand=True)
-        
-        # Bottom pattern
-        bottom_pattern = tk.Label(
-            inner_frame,
-            text="♣ ♦ ♥ ♠",
-            font=('Arial', 8, 'bold'),
-            fg='#ffffff',
-            bg='#2c5530'
-        )
-        bottom_pattern.pack(anchor='s', pady=(0, 5))
+        # Use the loaded card back image if available, otherwise fall back to text pattern
+        if self.card_back_image:
+            # Create label with the image
+            card_back_label = tk.Label(
+                inner_frame,
+                image=self.card_back_image,
+                bg='#2c5530'
+            )
+            card_back_label.pack(expand=True, fill=tk.BOTH)
+        else:
+            # Fallback to text-based card back pattern
+            # Top pattern
+            top_pattern = tk.Label(
+                inner_frame,
+                text="♠ ♥ ♦ ♣",
+                font=('Arial', 12, 'bold'),
+                fg='#ffffff',
+                bg='#2c5530'
+            )
+            top_pattern.pack(anchor='n', pady=(5, 0))
+            
+            # Center design
+            center_design = tk.Label(
+                inner_frame,
+                text="🂠",
+                font=('Arial', 24, 'bold'),
+                fg='#ffffff',
+                bg='#2c5530'
+            )
+            center_design.pack(expand=True)
+            
+            # Bottom pattern
+            bottom_pattern = tk.Label(
+                inner_frame,
+                text="♣ ♦ ♥ ♠",
+                font=('Arial', 8, 'bold'),
+                fg='#ffffff',
+                bg='#2c5530'
+            )
+            bottom_pattern.pack(anchor='s', pady=(0, 5))
         
         return card_frame 
+    
+    def _create_suit_pattern_layered(self, parent, count, suit_symbol, fg_color, bg_color):
+        """Create suit symbols using absolute positioning for perfect layout."""
+
+        # Traditional playing card patterns with absolute coordinates
+        patterns = {
+          1: [
+            (55, 80),              # Center only (Ace)
+          ],
+          2: [
+            (55, 40),              # Top center
+            (55, 120),             # Bottom center
+          ],
+          3: [
+            (55, 40),              # Top center
+            (55, 80),              # Center
+            (55, 120),             # Bottom center
+          ],
+          4: [
+            (35, 40), (78, 40),    # Top left & right
+            (35, 120), (78, 120),  # Bottom left & right
+          ],
+          5: [
+            (35, 40), (78, 40),    # Top left & right
+            (55, 80),              # Center
+            (35, 120), (78, 120),  # Bottom left & right
+          ],
+          6: [
+            (35, 40), (78, 40),    # Top left & right
+            (35, 80), (78, 80),    # Middle left & right
+            (35, 120), (78, 120),  # Bottom left & right
+          ],
+          7: [
+            (35, 40), (78, 40),    # Top left & right
+            (55, 60),              # Top center
+            (35, 80), (78, 80),    # Middle left & right
+            (35, 120), (78, 120),  # Bottom left & right
+          ],
+          8: [
+            (35, 40), (78, 40),    # Top left & right
+            (55, 60),              # Top center
+            (35, 80), (78, 80),    # Middle left & right
+            (55, 100),             # Bottom center
+            (35, 120), (78, 120),  # Bottom left & right
+          ],
+           9: [
+            (35, 40), (78, 40),   # Top left & right
+            (35, 66), (78, 66),   # Upper middle left & right
+            (35, 93), (78, 93),   # Lower middle left & right
+            (35, 120), (78, 120), # Bottom left & right
+            (55, 80)              # Center middle
+          ],  # 4 on each side (two columns), one in the center middle
+          10: [
+            (35, 40), (83, 40),    # Top left & right
+            (55, 53),              # Top center
+            (35, 66), (83, 66),    # Upper middle left & right
+            (35, 93), (83, 93),    # Lower middle left & right
+            (55, 106),             # Bottom center
+            (35, 120), (83, 120),  # Bottom left & right
+          ],
+          11: [
+            (57, 80),              # Center only (Ace)
+          ],
+        }
+        
+        if count in patterns:
+            font_size = 30
+            
+            for x, y in patterns[count]:
+                symbol_label = tk.Label(
+                    parent,
+                    text=suit_symbol,
+                    font=('Courier', font_size, 'bold'),
+                    fg=fg_color,
+                    bg=bg_color
+                )
+                symbol_label.place(x=x, y=y, anchor='center')
