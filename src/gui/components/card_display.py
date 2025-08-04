@@ -242,9 +242,15 @@ class CardDisplay(ttk.Frame):
                 fg=fg_color,
                 bg=card_bg
             )
-            center_label.place(x=57, y=80, anchor='center')
+            center_label.place(x=55, y=75, anchor='center')
         else:
-            self._create_suit_pattern_layered(bg_frame, card.rank.card_value, suit_symbol, fg_color, card_bg)
+            self._create_suit_pattern_layered(
+                parent=bg_frame,
+                count=card.rank.card_value,
+                suit_symbol=suit_symbol,
+                fg_color=fg_color,
+                bg_color=card_bg
+            )
         
         return card_frame
     
@@ -319,7 +325,7 @@ class CardDisplay(ttk.Frame):
         # Traditional playing card patterns with absolute coordinates
         patterns = {
           1: [
-            (55, 80),              # Center only (Ace)
+            (55, 75),              # Center only (Ace)
           ],
           2: [
             (55, 40),              # Top center
@@ -362,23 +368,25 @@ class CardDisplay(ttk.Frame):
             (35, 66), (75, 66),   # Upper middle left & right
             (35, 93), (75, 93),   # Lower middle left & right
             (35, 120), (75, 120), # Bottom left & right
-            (55, 80)              # Center middle
+            (55, 75)              # Center middle
           ],  # 4 on each side (two columns), one in the center middle
           10: [
-            (35, 40), (80, 40),    # Top left & right
+            (35, 40), (75, 40),    # Top left & right
             (55, 53),              # Top center
-            (35, 66), (80, 66),    # Upper middle left & right
-            (35, 93), (80, 93),    # Lower middle left & right
+            (35, 66), (75, 66),    # Upper middle left & right
+            (35, 93), (75, 93),    # Lower middle left & right
             (55, 106),             # Bottom center
-            (35, 120), (80, 120),  # Bottom left & right
+            (35, 120), (75, 120),  # Bottom left & right
           ],
           11: [
-            (57, 80),              # Center only (Ace)
+            (55, 75),              # Center only (Ace)
           ],
         }
+
+        patterns = self._shift_patterns_x(patterns, 1)
         
         if count in patterns:
-            font_size = 26
+            font_size = 45 if count in [1, 11] else 26
             
             for x, y in patterns[count]:
                 symbol_label = tk.Label(
@@ -389,3 +397,9 @@ class CardDisplay(ttk.Frame):
                     bg=bg_color
                 )
                 symbol_label.place(x=x, y=y, anchor='center')
+
+    def _shift_patterns_x(self, patterns, shift_amount):
+        return {
+            key: [(x + shift_amount, y) for (x, y) in coords]
+            for key, coords in patterns.items()
+        }    
