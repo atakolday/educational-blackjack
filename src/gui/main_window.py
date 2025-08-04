@@ -311,6 +311,13 @@ class BlackjackGUI:
         """Handle hit action."""
         if self.game.hit():
             self._update_display()
+            
+            # Check if we automatically stood on 21
+            current_hand = self.game.get_current_hand()
+            if current_hand and current_hand.total == 21 and not current_hand.is_blackjack:
+                # Show a brief message that we automatically stood
+                self._show_auto_stand_message()
+            
             # Add a small delay before checking if dealer should play
             self.root.after(500, self._check_dealer_turn)
         else:
@@ -565,6 +572,31 @@ class BlackjackGUI:
             status_text += f" | Bet: ${self.game.current_bet:.2f}"
         status_text += f" | Games: {self.game.games_played} | Win Rate: {self.game.get_win_rate():.1%}"
         self.status_bar.config(text=status_text)
+    
+    def _show_auto_stand_message(self):
+        """Show a brief message when automatically standing on 21."""
+        # Create a temporary popup message
+        popup = tk.Toplevel(self.root)
+        popup.title("Auto Stand")
+        popup.geometry("300x100")
+        popup.configure(bg='#2c5530')
+        
+        # Center the popup
+        popup.transient(self.root)
+        popup.grab_set()
+        
+        # Add message
+        message_label = tk.Label(
+            popup,
+            text="Player automatically stands on 21!",
+            font=('Arial', 14, 'bold'),
+            fg='white',
+            bg='#2c5530'
+        )
+        message_label.pack(expand=True)
+        
+        # Auto-close after 2 seconds
+        popup.after(2000, popup.destroy)
     
     def _on_close(self):
         """Handle window close event."""

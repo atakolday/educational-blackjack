@@ -178,8 +178,15 @@ class BlackjackGame:
         current_hand.add_card(card)
         self.card_counter.update_count(card)
         
+        # Check if hand reaches 21 (without being a blackjack) and automatically stand
+        if current_hand.total == 21 and not current_hand.is_blackjack:
+            # Automatically stand when reaching 21
+            if self.current_hand_index < len(self.player_hands) - 1:
+                self.current_hand_index += 1
+            else:
+                self.state = GameState.DEALER_TURN
         # If hand is bust or doubled, move to next hand
-        if current_hand.is_bust or current_hand.is_doubled:
+        elif current_hand.is_bust or current_hand.is_doubled:
             if self.current_hand_index < len(self.player_hands) - 1:
                 self.current_hand_index += 1
             else:
@@ -234,7 +241,7 @@ class BlackjackGame:
         self.card_counter.update_count(card)
         current_hand.mark_doubled()
         
-        # Move to next hand or dealer turn
+        # Move to next hand or dealer turn (doubled hands always end turn)
         if self.current_hand_index < len(self.player_hands) - 1:
             self.current_hand_index += 1
         else:
