@@ -331,46 +331,46 @@ class CardDisplay(ttk.Frame):
             (55, 120),             # Bottom center
           ],
           4: [
-            (35, 40), (78, 40),    # Top left & right
-            (35, 120), (78, 120),  # Bottom left & right
+            (35, 40), (75, 40),    # Top left & right
+            (35, 120), (75, 120),  # Bottom left & right
           ],
           5: [
-            (35, 40), (78, 40),    # Top left & right
+            (35, 40), (75, 40),    # Top left & right
             (55, 80),              # Center
-            (35, 120), (78, 120),  # Bottom left & right
+            (35, 120), (75, 120),  # Bottom left & right
           ],
           6: [
-            (35, 40), (78, 40),    # Top left & right
-            (35, 80), (78, 80),    # Middle left & right
-            (35, 120), (78, 120),  # Bottom left & right
+            (35, 40), (75, 40),    # Top left & right
+            (35, 80), (75, 80),    # Middle left & right
+            (35, 120), (75, 120),  # Bottom left & right
           ],
           7: [
-            (35, 40), (78, 40),    # Top left & right
+            (35, 40), (75, 40),    # Top left & right
             (55, 60),              # Top center
-            (35, 80), (78, 80),    # Middle left & right
-            (35, 120), (78, 120),  # Bottom left & right
+            (35, 80), (75, 80),    # Middle left & right
+            (35, 120), (75, 120),  # Bottom left & right
           ],
           8: [
-            (35, 40), (78, 40),    # Top left & right
+            (35, 40), (75, 40),    # Top left & right
             (55, 60),              # Top center
-            (35, 80), (78, 80),    # Middle left & right
+            (35, 80), (75, 80),    # Middle left & right
             (55, 100),             # Bottom center
-            (35, 120), (78, 120),  # Bottom left & right
+            (35, 120), (75, 120),  # Bottom left & right
           ],
            9: [
-            (35, 40), (78, 40),   # Top left & right
-            (35, 66), (78, 66),   # Upper middle left & right
-            (35, 93), (78, 93),   # Lower middle left & right
-            (35, 120), (78, 120), # Bottom left & right
+            (35, 40), (75, 40),   # Top left & right
+            (35, 66), (75, 66),   # Upper middle left & right
+            (35, 93), (75, 93),   # Lower middle left & right
+            (35, 120), (75, 120), # Bottom left & right
             (55, 80)              # Center middle
           ],  # 4 on each side (two columns), one in the center middle
           10: [
-            (35, 40), (83, 40),    # Top left & right
+            (35, 40), (80, 40),    # Top left & right
             (55, 53),              # Top center
-            (35, 66), (83, 66),    # Upper middle left & right
-            (35, 93), (83, 93),    # Lower middle left & right
+            (35, 66), (80, 66),    # Upper middle left & right
+            (35, 93), (80, 93),    # Lower middle left & right
             (55, 106),             # Bottom center
-            (35, 120), (83, 120),  # Bottom left & right
+            (35, 120), (80, 120),  # Bottom left & right
           ],
           11: [
             (57, 80),              # Center only (Ace)
@@ -378,7 +378,7 @@ class CardDisplay(ttk.Frame):
         }
         
         if count in patterns:
-            font_size = 30
+            font_size = 26
             
             for x, y in patterns[count]:
                 symbol_label = tk.Label(
