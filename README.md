@@ -66,8 +66,8 @@ blackjack/
 
 1. **Clone the repository:**
    ```bash
-   git clone <repository-url>
-   cd blackjack
+   git clone https://github.com/atakolday/educational-blackjack.git
+   cd educational-blackjack
    ```
 
 2. **Install dependencies:**
