@@ -26,9 +26,11 @@ class CardDisplay(ttk.Frame):
         self.cards: List[Card] = []
         self.hide_first = False
         self.card_back_image = None
+        self.face_card_images = {}  # Dictionary to store face card images
         
         self._create_widgets()
         self._load_card_back_image()
+        self._load_face_card_images()
     
     def _create_widgets(self):
         """Create the widget layout."""
@@ -72,6 +74,39 @@ class CardDisplay(ttk.Frame):
         except Exception as e:
             print(f"Failed to load card back image: {e}")
             self.card_back_image = None
+    
+    def _load_face_card_images(self):
+        """Load all face card images from assets."""
+        try:
+            # Get the path to the assets directory
+            current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            assets_dir = os.path.join(current_dir, 'assets', 'face_cards')
+            
+            # Define face card ranks and suits
+            face_ranks = ['jack', 'queen', 'king']
+            suits = ['clubs', 'diamonds', 'hearts', 'spades']
+            
+            # Load each face card image
+            for rank in face_ranks:
+                for suit in suits:
+                    image_path = os.path.join(assets_dir, f'{rank}_of_{suit}.png')
+                    
+                    # Load and resize the image to fit the card dimensions
+                    original_image = Image.open(image_path)
+                    
+                    # Scale the cropped content to fit the white background frame (118x158)
+                    resized_image = original_image.resize((102, 148), Image.Resampling.LANCZOS)
+                    
+                    # Convert rank and suit names to enum values for lookup
+                    rank_enum = getattr(Rank, rank.upper())
+                    suit_enum = getattr(Suit, suit.upper())
+                    
+                    # Store the image with (rank, suit) tuple as key
+                    self.face_card_images[(rank_enum, suit_enum)] = ImageTk.PhotoImage(resized_image)
+                    
+        except Exception as e:
+            print(f"Failed to load face card images: {e}")
+            self.face_card_images = {}
     
     def update_hand(self, hand: Hand, hide_first: bool = False):
         """
@@ -210,39 +245,50 @@ class CardDisplay(ttk.Frame):
         )
         bg_frame.pack(padx=1, pady=1, fill=tk.BOTH, expand=True)
         
-        # Layer 2: Corner rank/suit labels (absolute positioning)
-        # Top-left corner
-        top_left = tk.Label(
-            bg_frame,
-            text=f"{rank_text}\n{suit_symbol}",
-            font=('Arial', 18, 'bold') if rank_text != '10' else ('Arial Narrow', 16, 'bold'),
-            fg=fg_color,
-            bg=card_bg,
-            justify=tk.LEFT
-        )
-        top_left.place(x=2, y=2, anchor='nw')
-        
-        # Bottom-right corner (rotated)
-        bottom_right = tk.Label(
-            bg_frame,
-            text=f"{suit_symbol}\n{rank_text}",
-            font=('Arial', 18, 'bold') if rank_text != '10' else ('Arial Narrow', 16, 'bold'),
-            fg=fg_color,
-            bg=card_bg,
-            justify=tk.RIGHT
-        )
-        bottom_right.place(x=110, y=150, anchor='se')
+        # Layer 2: Corner rank/suit labels (absolute positioning) - only for non-face cards
+        if not is_face_card:
+            # Top-left corner
+            top_left = tk.Label(
+                bg_frame,
+                text=f"{rank_text}\n{suit_symbol}",
+                font=('Arial', 18, 'bold') if rank_text != '10' else ('Arial Narrow', 16, 'bold'),
+                fg=fg_color,
+                bg=card_bg,
+                justify=tk.LEFT
+            )
+            top_left.place(x=2, y=2, anchor='nw')
+            
+            # Bottom-right corner (rotated)
+            bottom_right = tk.Label(
+                bg_frame,
+                text=f"{suit_symbol}\n{rank_text}",
+                font=('Arial', 18, 'bold') if rank_text != '10' else ('Arial Narrow', 16, 'bold'),
+                fg=fg_color,
+                bg=card_bg,
+                justify=tk.RIGHT
+            )
+            bottom_right.place(x=110, y=150, anchor='se')
         
         # Layer 3: Center content
         if is_face_card:
-            center_label = tk.Label(
-                bg_frame,
-                text=rank_text,
-                font=('Arial', 36, 'bold'),
-                fg=fg_color,
-                bg=card_bg
-            )
-            center_label.place(x=55, y=75, anchor='center')
+            # Use PNG image for face cards if available, otherwise fall back to text
+            if (card.rank, card.suit) in self.face_card_images:
+                center_label = tk.Label(
+                    bg_frame,
+                    image=self.face_card_images[(card.rank, card.suit)],
+                    bg=card_bg
+                )
+                center_label.place(x=59, y=79, anchor='center')  # Center the 105x150 image in 118x158 frame
+            else:
+                # Fallback to text if image not available
+                center_label = tk.Label(
+                    bg_frame,
+                    text=rank_text,
+                    font=('Arial', 36, 'bold'),
+                    fg=fg_color,
+                    bg=card_bg
+                )
+                center_label.place(x=55, y=75, anchor='center')
         else:
             self._create_suit_pattern_layered(
                 parent=bg_frame,
@@ -261,8 +307,8 @@ class CardDisplay(ttk.Frame):
             self.cards_frame, 
             relief=tk.RAISED, 
             borderwidth=2,
-            bg='#1a1a1a',  # Darker shadow color
-            width=120,     # Fixed width for better proportions
+            bg='#1a1a1a',   # Darker shadow color
+            width=120,      # Fixed width for better proportions
             height=160      # Fixed height for better proportions
         )
         card_frame.pack_propagate(False)  # Prevent frame from shrinking
